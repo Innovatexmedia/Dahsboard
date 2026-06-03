@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InnovateX Revenue OS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+        colors: {
+          ink: { 900: '#0F172A', 800: '#1E293B', 700: '#334155', 600: '#475569', 500: '#64748B', 400: '#94A3B8', 300: '#CBD5E1', 200: '#E2E8F0', 100: '#F1F5F9', 50: '#F8FAFC' },
+          brand: { 600: '#0891B2', 500: '#06B6D4', 400: '#0EA5E9', 300: '#38BDF8' },
+          grow: { 600: '#059669', 500: '#10B981' },
+        }
+      }
+    }
+  }
+</script>
+<style>
+  html, body { font-family: 'Inter', sans-serif; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  .nav-item { transition: all .15s ease; }
+  .nav-item.active { background: linear-gradient(90deg, rgba(6,182,212,.18), rgba(6,182,212,.02)); color:#fff; box-shadow: inset 2px 0 0 #06B6D4; }
+  .nav-item:not(.active):hover { background: rgba(255,255,255,.05); }
+  .card { transition: box-shadow .2s ease, transform .2s ease; }
+  .card:hover { box-shadow: 0 10px 30px -12px rgba(15,23,42,.18); }
+  .kpi:hover { transform: translateY(-2px); }
+  .page { display:none; animation: fade .25s ease; }
+  .page.active { display:block; }
+  @keyframes fade { from { opacity:0; transform: translateY(6px);} to {opacity:1; transform:none;} }
+  .drawer { transition: transform .3s cubic-bezier(.4,0,.2,1); }
+  .row-click { cursor:pointer; transition: background .12s ease; }
+  .row-click:hover { background:#F8FAFC; }
+  .kanban-card { cursor:grab; transition: box-shadow .15s, transform .15s; }
+  .kanban-card:active { cursor:grabbing; }
+  .kanban-card.dragging { opacity:.4; }
+  .kanban-col.dragover { background:#ECFEFF; outline:2px dashed #06B6D4; }
+  .toggle { transition: background .2s; }
+  .toggle-dot { transition: transform .2s; }
+  [data-tab-panel] { display:none; }
+  [data-tab-panel].active { display:block; }
+  .tab-btn.active { color:#0891B2; border-color:#06B6D4; }
+  .glass { backdrop-filter: blur(8px); }
+  .skeleton { background: linear-gradient(90deg,#F1F5F9 25%,#E2E8F0 37%,#F1F5F9 63%); background-size:400% 100%; animation: sh 1.2s infinite; }
+  @keyframes sh { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+</style>
+</head>
+<body class="bg-ink-50 text-ink-800 antialiased">
+
+<!-- ===================== APP SHELL ===================== -->
+<div class="flex h-screen overflow-hidden">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside id="sidebar" class="w-64 shrink-0 bg-ink-900 text-ink-300 flex flex-col z-40 fixed lg:static inset-y-0 -translate-x-full lg:translate-x-0 transition-transform duration-300">
+    <!-- brand -->
+    <div class="h-16 flex items-center gap-2.5 px-5 border-b border-white/5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-400 to-grow-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
+        <i data-lucide="orbit" class="w-5 h-5 text-white"></i>
+      </div>
+      <div class="leading-tight">
+        <div class="text-white font-bold text-[15px]">InnovateX</div>
+        <div class="text-[10px] uppercase tracking-widest text-brand-400 font-semibold">Revenue OS</div>
+      </div>
+    </div>
+
+    <!-- workspace switcher -->
+    <div class="px-3 pt-3">
+      <button class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition text-left">
+        <div class="w-7 h-7 rounded-md bg-grow-600 flex items-center justify-center text-white text-xs font-bold">EC</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-white text-[13px] font-semibold truncate">Elevate Coaching Co.</div>
+          <div class="text-[10px] text-ink-400">Growth plan · Coaches</div>
+        </div>
+        <i data-lucide="chevrons-up-down" class="w-4 h-4 text-ink-400"></i>
+      </button>
+    </div>
+
+    <!-- nav -->
+    <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 text-[13.5px]">
+      <p class="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-ink-500 font-semibold">Workspace</p>
+      <a data-nav="dashboard" class="nav-item active flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="layout-dashboard" class="w-[18px] h-[18px]"></i>Dashboard</a>
+      <a data-nav="leads" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="inbox" class="w-[18px] h-[18px]"></i>Leads<span class="ml-auto text-[10px] bg-brand-500 text-white px-1.5 py-0.5 rounded-full font-semibold">18</span></a>
+      <a data-nav="qualification" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="sparkles" class="w-[18px] h-[18px]"></i>AI Qualification<span class="ml-auto text-[10px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-semibold">5</span></a>
+      <a data-nav="pipeline" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="kanban" class="w-[18px] h-[18px]"></i>Pipeline</a>
+      <a data-nav="bookings" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="calendar-check" class="w-[18px] h-[18px]"></i>Bookings</a>
+      <a data-nav="nurture" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="git-branch" class="w-[18px] h-[18px]"></i>Nurture</a>
+
+      <p class="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-ink-500 font-semibold">Intelligence</p>
+      <a data-nav="attribution" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="route" class="w-[18px] h-[18px]"></i>Attribution</a>
+      <a data-nav="campaigns" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="megaphone" class="w-[18px] h-[18px]"></i>Campaigns</a>
+      <a data-nav="tracking" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="radar" class="w-[18px] h-[18px]"></i>Tracking</a>
+      <a data-nav="reports" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="file-bar-chart" class="w-[18px] h-[18px]"></i>Reports</a>
+
+      <p class="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-ink-500 font-semibold">Revenue</p>
+      <a data-nav="payments" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="credit-card" class="w-[18px] h-[18px]"></i>Payments</a>
+      <a data-nav="integrations" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="plug" class="w-[18px] h-[18px]"></i>Integrations</a>
+      <a data-nav="settings" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"><i data-lucide="settings" class="w-[18px] h-[18px]"></i>Settings</a>
+    </nav>
+
+    <!-- activation widget -->
+    <div class="p-3 border-t border-white/5">
+      <div class="rounded-xl bg-gradient-to-br from-brand-600/30 to-grow-600/20 p-3.5 border border-white/5">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-semibold text-white">Activation</span>
+          <span class="text-[11px] text-brand-300 font-bold">80%</span>
+        </div>
+        <div class="h-1.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full w-4/5 bg-gradient-to-r from-brand-400 to-grow-500 rounded-full"></div></div>
+        <p class="text-[10.5px] text-ink-400 mt-2 leading-snug">First lead, AI qualification & booking done. Connect Razorpay to finish.</p>
+      </div>
+    </div>
+  </aside>
+
+  <div id="overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden"></div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- TOPBAR -->
+    <header class="h-16 shrink-0 bg-white border-b border-ink-200 flex items-center gap-3 px-4 lg:px-6 z-20">
+      <button id="menuBtn" class="lg:hidden p-2 -ml-2 text-ink-600"><i data-lucide="menu" class="w-5 h-5"></i></button>
+      <div>
+        <h1 id="pageTitle" class="text-[16px] font-bold text-ink-900 leading-tight">Owner Overview</h1>
+        <p id="pageCrumb" class="text-[11px] text-ink-400">Workspace · Dashboard</p>
+      </div>
+
+      <div class="ml-auto flex items-center gap-2">
+        <!-- search -->
+        <div class="hidden md:flex items-center gap-2 bg-ink-50 border border-ink-200 rounded-lg px-3 h-9 w-64 focus-within:ring-2 focus-within:ring-brand-500/30">
+          <i data-lucide="search" class="w-4 h-4 text-ink-400"></i>
+          <input placeholder="Search leads, deals, sources…" class="bg-transparent text-[13px] outline-none w-full placeholder:text-ink-400"/>
+          <span class="text-[10px] text-ink-400 border border-ink-200 rounded px-1">⌘K</span>
+        </div>
+
+        <!-- date range -->
+        <button class="hidden sm:flex items-center gap-2 h-9 px-3 rounded-lg border border-ink-200 text-[13px] text-ink-600 hover:bg-ink-50">
+          <i data-lucide="calendar" class="w-4 h-4"></i> Last 30 days <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <!-- role switcher -->
+        <select id="roleSwitch" onchange="switchRole(this.value)" class="h-9 px-2 rounded-lg border border-ink-200 text-[12.5px] text-ink-600 bg-white hover:bg-ink-50 cursor-pointer">
+          <option value="Owner">👑 Tenant Owner</option>
+          <option value="Admin">🛠️ Tenant Admin</option>
+          <option value="Sales">📞 Sales User</option>
+          <option value="ReadOnly">👁️ Read-Only / VA</option>
+          <option value="Super">⚡ Super Admin</option>
+        </select>
+
+        <button onclick="openAIPanel()" class="relative h-9 w-9 grid place-items-center rounded-lg border border-ink-200 hover:bg-ink-50">
+          <i data-lucide="bell" class="w-[18px] h-[18px] text-ink-600"></i>
+          <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] grid place-items-center rounded-full font-bold">3</span>
+        </button>
+
+        <div class="flex items-center gap-2 pl-1">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-ink-700 to-ink-900 text-white grid place-items-center text-[12px] font-bold">HK</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT SCROLL -->
+    <main class="flex-1 overflow-y-auto p-4 lg:p-6">
+
+      <!-- ============================ DASHBOARD ============================ -->
+      <section id="page-dashboard" class="page active">
+        <!-- alert banner -->
+        <div class="mb-5 flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+          <div class="w-8 h-8 rounded-lg bg-amber-100 grid place-items-center"><i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i></div>
+          <p class="text-[13px] text-amber-900 flex-1"><b>WhatsApp BSP token expires in 4 days.</b> Reconnect to avoid losing lead capture from WhatsApp.</p>
+          <button onclick="go('integrations')" class="text-[12.5px] font-semibold text-amber-700 hover:underline">Fix now →</button>
+        </div>
+
+        <!-- KPI tiles -->
+        <div id="kpiRow" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5"></div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
+          <!-- funnel -->
+          <div class="card xl:col-span-2 bg-white rounded-2xl border border-ink-200 p-5">
+            <div class="flex items-center justify-between mb-1">
+              <div>
+                <h3 class="font-bold text-ink-900 text-[15px]">Revenue Funnel</h3>
+                <p class="text-[12px] text-ink-400">Capture → Qualified → Booked → Won</p>
+              </div>
+              <span class="text-[11px] font-semibold text-grow-600 bg-grow-500/10 px-2 py-1 rounded-full">9.1% capture→won</span>
+            </div>
+            <div class="h-64"><canvas id="funnelChart"></canvas></div>
+          </div>
+          <!-- top sources -->
+          <div class="card bg-white rounded-2xl border border-ink-200 p-5">
+            <h3 class="font-bold text-ink-900 text-[15px] mb-1">Top Sources</h3>
+            <p class="text-[12px] text-ink-400 mb-3">Leads by origin channel</p>
+            <div class="h-44"><canvas id="sourceChart"></canvas></div>
+            <div id="sourceLegend" class="mt-3 space-y-1.5 text-[12.5px]"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          <!-- pipeline by stage -->
+          <div class="card xl:col-span-2 bg-white rounded-2xl border border-ink-200 p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-ink-900 text-[15px]">Pipeline by Stage</h3>
+              <button onclick="go('pipeline')" class="text-[12px] font-semibold text-brand-600 hover:underline">Open pipeline →</button>
+            </div>
+            <div class="h-56"><canvas id="pipelineBar"></canvas></div>
+          </div>
+          <!-- activity feed -->
+          <div class="card bg-white rounded-2xl border border-ink-200 p-5 flex flex-col">
+            <h3 class="font-bold text-ink-900 text-[15px] mb-3">Recent Activity</h3>
+            <div id="activityFeed" class="space-y-3.5 overflow-y-auto flex-1 pr-1"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ LEADS ============================ -->
+      <section id="page-leads" class="page">
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <div class="flex items-center gap-2 bg-white border border-ink-200 rounded-lg px-3 h-9 w-full sm:w-72">
+            <i data-lucide="search" class="w-4 h-4 text-ink-400"></i>
+            <input id="leadSearch" oninput="renderLeads()" placeholder="Search leads…" class="bg-transparent text-[13px] outline-none w-full"/>
+          </div>
+          <select id="leadSource" onchange="renderLeads()" class="h-9 px-3 rounded-lg border border-ink-200 text-[13px] bg-white">
+            <option value="">All sources</option><option>Meta Ads</option><option>WhatsApp</option><option>Instagram</option><option>Web Form</option><option>Referral</option>
+          </select>
+          <select id="leadStatus" onchange="renderLeads()" class="h-9 px-3 rounded-lg border border-ink-200 text-[13px] bg-white">
+            <option value="">All status</option><option>New</option><option>Qualifying</option><option>Hot</option><option>Warm</option><option>Cold</option>
+          </select>
+          <div class="ml-auto flex gap-2">
+            <button class="h-9 px-3 rounded-lg border border-ink-200 text-[13px] text-ink-600 hover:bg-ink-50 flex items-center gap-1.5"><i data-lucide="download" class="w-4 h-4"></i>Export</button>
+            <button onclick="openModal('addLeadModal')" class="h-9 px-3.5 rounded-lg bg-ink-900 text-white text-[13px] font-semibold hover:bg-ink-800 flex items-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i>Add Lead</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div class="bg-white border border-ink-200 rounded-xl p-3"><div class="text-[11px] text-ink-400">New this week</div><div class="text-xl font-bold text-ink-900">63</div></div>
+          <div class="bg-white border border-ink-200 rounded-xl p-3"><div class="text-[11px] text-ink-400">AI-qualified</div><div class="text-xl font-bold text-ink-900">71%</div></div>
+          <div class="bg-white border border-ink-200 rounded-xl p-3"><div class="text-[11px] text-ink-400">Avg response</div><div class="text-xl font-bold text-ink-900">2.4m</div></div>
+          <div class="bg-white border border-ink-200 rounded-xl p-3"><div class="text-[11px] text-ink-400">Unworked</div><div class="text-xl font-bold text-red-500">9</div></div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-ink-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-[13px]">
+              <thead class="bg-ink-50 text-ink-500 text-[11px] uppercase tracking-wide">
+                <tr>
+                  <th class="text-left font-semibold px-4 py-3">Lead</th>
+                  <th class="text-left font-semibold px-4 py-3">Source</th>
+                  <th class="text-left font-semibold px-4 py-3">Score</th>
+                  <th class="text-left font-semibold px-4 py-3">Status</th>
+                  <th class="text-left font-semibold px-4 py-3">Owner</th>
+                  <th class="text-left font-semibold px-4 py-3">Created</th>
+                  <th class="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody id="leadsTable" class="divide-y divide-ink-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ AI QUALIFICATION ============================ -->
+      <section id="page-qualification" class="page">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div class="lg:col-span-1 space-y-4">
+            <div class="bg-gradient-to-br from-ink-900 to-ink-800 rounded-2xl p-5 text-white">
+              <div class="flex items-center gap-2 mb-1"><i data-lucide="sparkles" class="w-5 h-5 text-brand-400"></i><h3 class="font-bold">AI Qualification Engine</h3></div>
+              <p class="text-[12.5px] text-ink-300 mb-4">Conversational AI qualifies leads using your 5 configured questions, then scores fit and recommends next action.</p>
+              <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="bg-white/5 rounded-lg py-2"><div class="text-lg font-bold">71%</div><div class="text-[10px] text-ink-400">Auto-qualified</div></div>
+                <div class="bg-white/5 rounded-lg py-2"><div class="text-lg font-bold">94%</div><div class="text-[10px] text-ink-400">AI confidence</div></div>
+                <div class="bg-white/5 rounded-lg py-2"><div class="text-lg font-bold">5</div><div class="text-[10px] text-ink-400">In review</div></div>
+              </div>
+            </div>
+            <div class="bg-white border border-ink-200 rounded-2xl p-5">
+              <h4 class="font-bold text-ink-900 text-[14px] mb-3">Qualification Flow</h4>
+              <ol class="space-y-2.5 text-[12.5px] text-ink-600">
+                <li class="flex gap-2.5"><span class="w-5 h-5 shrink-0 rounded-full bg-brand-500/10 text-brand-600 text-[11px] grid place-items-center font-bold">1</span>What outcome are you trying to achieve?</li>
+                <li class="flex gap-2.5"><span class="w-5 h-5 shrink-0 rounded-full bg-brand-500/10 text-brand-600 text-[11px] grid place-items-center font-bold">2</span>What's your current monthly revenue?</li>
+                <li class="flex gap-2.5"><span class="w-5 h-5 shrink-0 rounded-full bg-brand-500/10 text-brand-600 text-[11px] grid place-items-center font-bold">3</span>Have you worked with a coach before?</li>
+                <li class="flex gap-2.5"><span class="w-5 h-5 shrink-0 rounded-full bg-brand-500/10 text-brand-600 text-[11px] grid place-items-center font-bold">4</span>What's your timeline to start?</li>
+                <li class="flex gap-2.5"><span class="w-5 h-5 shrink-0 rounded-full bg-brand-500/10 text-brand-600 text-[11px] grid place-items-center font-bold">5</span>What's your budget range?</li>
+              </ol>
+              <button onclick="toast('Question builder opened','info')" class="mt-4 w-full h-9 rounded-lg border border-ink-200 text-[13px] font-semibold text-ink-600 hover:bg-ink-50">Edit questions</button>
+            </div>
+          </div>
+
+          <div class="lg:col-span-2 bg-white border border-ink-200 rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-ink-900 text-[15px]">Human Review Queue</h3>
+              <span class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full font-semibold">Confidence-gated handoff</span>
+            </div>
+            <div id="reviewQueue" class="space-y-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ PIPELINE ============================ -->
+      <section id="page-pipeline" class="page">
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <div class="inline-flex rounded-lg border border-ink-200 bg-white p-0.5">
+            <button class="px-3 h-8 rounded-md text-[13px] font-semibold bg-ink-900 text-white">Kanban</button>
+            <button onclick="toast('Table view is in the prototype backlog','info')" class="px-3 h-8 rounded-md text-[13px] font-medium text-ink-500">Table</button>
+          </div>
+          <select class="h-9 px-3 rounded-lg border border-ink-200 text-[13px] bg-white"><option>All owners</option><option>Himanshu K.</option><option>Neha S.</option></select>
+          <select class="h-9 px-3 rounded-lg border border-ink-200 text-[13px] bg-white"><option>All sources</option><option>Meta Ads</option><option>WhatsApp</option></select>
+          <div class="ml-auto text-[12.5px] text-ink-500">Pipeline value <b class="text-ink-900">₹48.2L</b> · 23 open deals</div>
+        </div>
+        <div id="kanban" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4"></div>
+      </section>
+
+      <!-- ============================ BOOKINGS ============================ -->
+      <section id="page-bookings" class="page">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+          <div class="card bg-white border border-ink-200 rounded-xl p-4"><div class="text-[12px] text-ink-400">Booked this week</div><div class="text-2xl font-bold text-ink-900">24</div></div>
+          <div class="card bg-white border border-ink-200 rounded-xl p-4"><div class="text-[12px] text-ink-400">Show rate</div><div class="text-2xl font-bold text-grow-600">78%</div></div>
+          <div class="card bg-white border border-ink-200 rounded-xl p-4"><div class="text-[12px] text-ink-400">No-shows</div><div class="text-2xl font-bold text-red-500">5</div></div>
+          <div class="card bg-white border border-ink-200 rounded-xl p-4"><div class="text-[12px] text-ink-400">Booked→Won</div><div class="text-2xl font-bold text-ink-900">41%</div></div>
+        </div>
+        <div class="bg-white border border-ink-200 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-ink-900 text-[15px]">Upcoming Bookings</h3>
+            <span class="text-[12px] text-ink-400 flex items-center gap-1.5"><i data-lucide="link" class="w-4 h-4"></i>Synced via Cal.com</span>
+          </div>
+          <div id="bookingsList" class="space-y-3"></div>
+        </div>
+      </section>
+
+      <!-- ============================ NURTURE ============================ -->
+      <section id="page-nurture" class="page">
+        <div class="flex items-center justify-between mb-4">
+          <div><h3 class="font-bold text-ink-900 text-[15px]">Nurture Sequences</h3><p class="text-[12px] text-ink-400">Automated multi-channel follow-up across WhatsApp, email & SMS</p></div>
+          <button onclick="toast('Sequence builder opening…','info')" class="h-9 px-3.5 rounded-lg bg-ink-900 text-white text-[13px] font-semibold flex items-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i>New Sequence</button>
+        </div>
+        <div id="sequences" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+      </section>
+
+      <!-- ============================ ATTRIBUTION ============================ -->
+      <section id="page-attribution" class="page">
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <div class="inline-flex rounded-lg border border-ink-200 bg-white p-0.5 text-[13px]">
+            <button class="attr-model px-3 h-8 rounded-md font-semibold bg-ink-900 text-white" data-model="first">First-touch</button>
+            <button class="attr-model px-3 h-8 rounded-md font-medium text-ink-500" data-model="last">Last-touch</button>
+            <button class="attr-model px-3 h-8 rounded-md font-medium text-ink-500" data-model="multi">Multi-touch <span class="text-[9px] text-amber-500">V2</span></button>
+          </div>
+          <span class="ml-auto inline-flex items-center gap-3 text-[11.5px]">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-grow-500"></span>Confirmed 82%</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>Inferred 13%</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-ink-300"></span>Unknown 5%</span>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
+          <div class="card xl:col-span-2 bg-white border border-ink-200 rounded-2xl p-5">
+            <h3 class="font-bold text-ink-900 text-[15px] mb-1">Source → Conversion Flow</h3>
+            <p class="text-[12px] text-ink-400 mb-4">How each source moves through the full revenue journey</p>
+            <div id="sankey" class="space-y-3"></div>
+          </div>
+          <div class="card bg-white border border-ink-200 rounded-2xl p-5">
+            <h3 class="font-bold text-ink-900 text-[15px] mb-1">Revenue by Source</h3>
+            <p class="text-[12px] text-ink-400 mb-3">Won deals tied to origin</p>
+            <div class="h-48"><canvas id="attrRevenue"></canvas></div>
+          </div>
+        </div>
+
+        <div class="bg-white border border-ink-200 rounded-2xl overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-ink-100"><h3 class="font-bold text-ink-900 text-[15px]">Source Comparison</h3></div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-[13px]">
+              <thead class="bg-ink-50 text-ink-500 text-[11px] uppercase tracking-wide">
+                <tr><th class="text-left font-semibold px-5 py-3">Source</th><th class="text-right font-semibold px-4 py-3">Leads</th><th class="text-right font-semibold px-4 py-3">Qualified</th><th class="text-right font-semibold px-4 py-3">Booked</th><th class="text-right font-semibold px-4 py-3">Won</th><th class="text-right font-semibold px-4 py-3">Revenue</th><th class="text-right font-semibold px-5 py-3">Conv.</th></tr>
+              </thead>
+              <tbody id="attrTable" class="divide-y divide-ink-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ CAMPAIGNS ============================ -->
+      <section id="page-campaigns" class="page">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
+          <div class="card xl:col-span-2 bg-white border border-ink-200 rounded-2xl p-5">
+            <h3 class="font-bold text-ink-900 text-[15px] mb-1">Lead Volume Trend</h3>
+            <p class="text-[12px] text-ink-400 mb-3">Daily captured leads vs qualified</p>
+            <div class="h-60"><canvas id="campaignTrend"></canvas></div>
+          </div>
+          <div class="card bg-white border border-ink-200 rounded-2xl p-5">
+            <h3 class="font-bold text-ink-900 text-[15px] mb-3">Top / Bottom Performers</h3>
+            <div id="performers" class="space-y-3"></div>
+          </div>
+        </div>
+        <div class="bg-white border border-ink-200 rounded-2xl overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-ink-100 flex items-center justify-between"><h3 class="font-bold text-ink-900 text-[15px]">Campaign Performance</h3><span class="text-[12px] text-ink-400">Meta Ads · last 30 days</span></div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-[13px]">
+              <thead class="bg-ink-50 text-ink-500 text-[11px] uppercase tracking-wide">
+                <tr><th class="text-left font-semibold px-5 py-3">Campaign</th><th class="text-right font-semibold px-4 py-3">Spend</th><th class="text-right font-semibold px-4 py-3">Leads</th><th class="text-right font-semibold px-4 py-3">CPL</th><th class="text-right font-semibold px-4 py-3">Qualified</th><th class="text-right font-semibold px-4 py-3">Won</th><th class="text-right font-semibold px-4 py-3">Revenue</th><th class="text-right font-semibold px-5 py-3">ROAS</th></tr>
+              </thead>
+              <tbody id="campaignTable" class="divide-y divide-ink-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ TRACKING ============================ -->
+      <section id="page-tracking" class="page">
+        <div id="trackTiles" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5"></div>
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
+          <div class="card xl:col-span-2 bg-white border border-ink-200 rounded-2xl p-5">
+            <h3 class="font-bold text-ink-900 text-[15px] mb-1">Event Volume by Type</h3>
+            <p class="text-[12px] text-ink-400 mb-3">Tracking event taxonomy — last 7 days</p>
+            <div class="h-60"><canvas id="eventChart"></canvas></div>
+          </div>
+          <div class="card bg-white border border-ink-200 rounded-2xl p-5">
+            <h3 class="font-bold text-ink-900 text-[15px] mb-3">Tracking Health</h3>
+            <div class="space-y-4" id="trackHealth"></div>
+          </div>
+        </div>
+        <div class="bg-white border border-ink-200 rounded-2xl overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-ink-100"><h3 class="font-bold text-ink-900 text-[15px]">Source Link Performance</h3></div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-[13px]">
+              <thead class="bg-ink-50 text-ink-500 text-[11px] uppercase tracking-wide"><tr><th class="text-left font-semibold px-5 py-3">Tracked Link</th><th class="text-left font-semibold px-4 py-3">Channel</th><th class="text-right font-semibold px-4 py-3">Clicks</th><th class="text-right font-semibold px-4 py-3">Leads</th><th class="text-right font-semibold px-5 py-3">Match Rate</th></tr></thead>
+              <tbody id="trackTable" class="divide-y divide-ink-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ REPORTS ============================ -->
+      <section id="page-reports" class="page">
+        <div class="flex items-center justify-between mb-4">
+          <div><h3 class="font-bold text-ink-900 text-[15px]">Reports & Briefings</h3><p class="text-[12px] text-ink-400">AI-generated summaries delivered to WhatsApp & email</p></div>
+          <button onclick="toast('Weekly Briefing generated & queued','success')" class="h-9 px-3.5 rounded-lg bg-ink-900 text-white text-[13px] font-semibold flex items-center gap-1.5"><i data-lucide="sparkles" class="w-4 h-4"></i>Generate Briefing</button>
+        </div>
+        <div id="reportsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+      </section>
+
+      <!-- ============================ PAYMENTS ============================ -->
+      <section id="page-payments" class="page">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+          <div class="card bg-white border border-ink-200 rounded-xl p-4"><div class="text-[12px] text-ink-400">Captured (30d)</div><div class="text-2xl font-bold text-grow-600">₹14.8L</div></div>
+          <div class="card bg-white border border-ink-200 rounded-xl p-4"><div class="text-[12px] text-ink-400">Links sent</div><div class="text-2xl font-bold text-ink-900">38</div></div>
+          <div class="card bg-white border border-ink-200 rounded-xl p-4"><div class="text-[12px] text-ink-400">Paid</div><div class="text-2xl font-bold text-ink-900">22</div></div>
+          <div class="card bg-white border border-ink-200 rounded-xl p-4"><div class="text-[12px] text-ink-400">Pending</div><div class="text-2xl font-bold text-amber-500">9</div></div>
+        </div>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-ink-900 text-[15px]">Payment Links</h3>
+          <button onclick="openModal('payModal')" class="h-9 px-3.5 rounded-lg bg-grow-600 text-white text-[13px] font-semibold flex items-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i>Generate Link</button>
+        </div>
+        <div class="bg-white border border-ink-200 rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-[13px]">
+              <thead class="bg-ink-50 text-ink-500 text-[11px] uppercase tracking-wide"><tr><th class="text-left font-semibold px-5 py-3">Customer</th><th class="text-left font-semibold px-4 py-3">Plan</th><th class="text-right font-semibold px-4 py-3">Amount</th><th class="text-left font-semibold px-4 py-3">Source</th><th class="text-left font-semibold px-4 py-3">Status</th><th class="text-left font-semibold px-5 py-3">Date</th></tr></thead>
+              <tbody id="payTable" class="divide-y divide-ink-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ INTEGRATIONS ============================ -->
+      <section id="page-integrations" class="page">
+        <h3 class="font-bold text-ink-900 text-[15px] mb-1">Integrations & Health</h3>
+        <p class="text-[12px] text-ink-400 mb-4">Connection status, sync lag and error rate per integration</p>
+        <div id="integrationGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+      </section>
+
+      <!-- ============================ SETTINGS ============================ -->
+      <section id="page-settings" class="page">
+        <div class="border-b border-ink-200 mb-5 flex gap-6 text-[13.5px]">
+          <button onclick="settingsTab('users',this)" class="tab-btn active border-b-2 border-transparent pb-2.5 font-semibold text-ink-500">Users & Roles</button>
+          <button onclick="settingsTab('plan',this)" class="tab-btn border-b-2 border-transparent pb-2.5 font-medium text-ink-500">Plan & Billing</button>
+          <button onclick="settingsTab('workspace',this)" class="tab-btn border-b-2 border-transparent pb-2.5 font-medium text-ink-500">Workspace</button>
+        </div>
+
+        <div data-tab-panel="users" class="active">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-[13px] text-ink-500">Role-based access control · <b class="text-ink-900">5 members</b></p>
+            <button onclick="openModal('inviteModal')" class="h-9 px-3.5 rounded-lg bg-ink-900 text-white text-[13px] font-semibold flex items-center gap-1.5"><i data-lucide="user-plus" class="w-4 h-4"></i>Invite</button>
+          </div>
+          <div class="bg-white border border-ink-200 rounded-2xl overflow-hidden mb-6">
+            <table class="w-full text-[13px]">
+              <thead class="bg-ink-50 text-ink-500 text-[11px] uppercase tracking-wide"><tr><th class="text-left font-semibold px-5 py-3">Member</th><th class="text-left font-semibold px-4 py-3">Role</th><th class="text-left font-semibold px-4 py-3">MFA</th><th class="text-left font-semibold px-5 py-3">Last active</th></tr></thead>
+              <tbody id="usersTable" class="divide-y divide-ink-100"></tbody>
+            </table>
+          </div>
+          <h4 class="font-bold text-ink-900 text-[14px] mb-3">RBAC Capability Matrix</h4>
+          <div class="bg-white border border-ink-200 rounded-2xl overflow-x-auto">
+            <table class="w-full text-[12.5px]">
+              <thead class="bg-ink-50 text-ink-500 text-[11px] uppercase tracking-wide"><tr><th class="text-left font-semibold px-5 py-3">Capability</th><th class="text-center font-semibold px-3 py-3">Owner</th><th class="text-center font-semibold px-3 py-3">Admin</th><th class="text-center font-semibold px-3 py-3">Sales</th><th class="text-center font-semibold px-3 py-3">Read-Only</th><th class="text-center font-semibold px-3 py-3">Super</th></tr></thead>
+              <tbody id="rbacTable" class="divide-y divide-ink-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div data-tab-panel="plan">
+          <div id="plansGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6"></div>
+          <div class="bg-white border border-ink-200 rounded-2xl p-5">
+            <h4 class="font-bold text-ink-900 text-[14px] mb-4">Usage this cycle</h4>
+            <div id="usageBars" class="space-y-4"></div>
+          </div>
+        </div>
+
+        <div data-tab-panel="workspace">
+          <div class="bg-white border border-ink-200 rounded-2xl p-5 max-w-2xl space-y-1">
+            <h4 class="font-bold text-ink-900 text-[14px] mb-2">Preferences</h4>
+            <div id="toggleList"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===================== LEAD DETAIL DRAWER ===================== -->
+<div id="drawerWrap" class="fixed inset-0 z-50 hidden">
+  <div onclick="closeDrawer()" class="absolute inset-0 bg-black/40 glass"></div>
+  <div id="drawer" class="drawer absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl translate-x-full flex flex-col">
+    <div id="drawerBody" class="flex-1 overflow-y-auto"></div>
+  </div>
+</div>
+
+<!-- ===================== AI NOTIFICATIONS PANEL ===================== -->
+<div id="aiPanel" class="fixed inset-0 z-50 hidden">
+  <div onclick="closeAIPanel()" class="absolute inset-0"></div>
+  <div class="absolute right-4 top-16 w-80 bg-white rounded-2xl border border-ink-200 shadow-2xl overflow-hidden">
+    <div class="px-4 py-3 border-b border-ink-100 flex items-center justify-between"><h4 class="font-bold text-[14px] text-ink-900">Notifications</h4><span class="text-[11px] text-brand-600 font-semibold">Mark all read</span></div>
+    <div class="max-h-80 overflow-y-auto divide-y divide-ink-100" id="notifList"></div>
+  </div>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+<!-- add lead -->
+<div id="addLeadModal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div onclick="closeModal('addLeadModal')" class="absolute inset-0 bg-black/40"></div>
+  <div class="relative bg-white rounded-2xl w-full max-w-md shadow-2xl">
+    <div class="px-5 py-4 border-b border-ink-100 flex items-center justify-between"><h3 class="font-bold text-ink-900">Add Lead</h3><button onclick="closeModal('addLeadModal')"><i data-lucide="x" class="w-5 h-5 text-ink-400"></i></button></div>
+    <div class="p-5 space-y-3">
+      <div><label class="text-[12px] font-semibold text-ink-500">Full name</label><input id="nl_name" class="mt-1 w-full h-10 px-3 rounded-lg border border-ink-200 text-[13px] outline-none focus:ring-2 focus:ring-brand-500/30" placeholder="e.g. Ananya Sharma"/></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-[12px] font-semibold text-ink-500">Source</label><select id="nl_source" class="mt-1 w-full h-10 px-3 rounded-lg border border-ink-200 text-[13px] bg-white"><option>Meta Ads</option><option>WhatsApp</option><option>Instagram</option><option>Web Form</option><option>Referral</option></select></div>
+        <div><label class="text-[12px] font-semibold text-ink-500">Phone</label><input class="mt-1 w-full h-10 px-3 rounded-lg border border-ink-200 text-[13px]" placeholder="+91 …"/></div>
+      </div>
+      <div class="flex items-center gap-2 text-[12px] text-ink-500 bg-ink-50 rounded-lg p-3"><i data-lucide="sparkles" class="w-4 h-4 text-brand-500"></i>AI qualification triggers automatically on create.</div>
+    </div>
+    <div class="px-5 py-4 border-t border-ink-100 flex justify-end gap-2"><button onclick="closeModal('addLeadModal')" class="h-9 px-4 rounded-lg border border-ink-200 text-[13px] font-semibold text-ink-600">Cancel</button><button onclick="addLead()" class="h-9 px-4 rounded-lg bg-ink-900 text-white text-[13px] font-semibold">Create Lead</button></div>
+  </div>
+</div>
+
+<!-- payment link -->
+<div id="payModal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div onclick="closeModal('payModal')" class="absolute inset-0 bg-black/40"></div>
+  <div class="relative bg-white rounded-2xl w-full max-w-md shadow-2xl">
+    <div class="px-5 py-4 border-b border-ink-100 flex items-center justify-between"><h3 class="font-bold text-ink-900">Generate Payment Link</h3><button onclick="closeModal('payModal')"><i data-lucide="x" class="w-5 h-5 text-ink-400"></i></button></div>
+    <div class="p-5 space-y-3">
+      <div><label class="text-[12px] font-semibold text-ink-500">Customer / Deal</label><input class="mt-1 w-full h-10 px-3 rounded-lg border border-ink-200 text-[13px]" value="Ananya Sharma — 1:1 Coaching"/></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-[12px] font-semibold text-ink-500">Amount (₹)</label><input class="mt-1 w-full h-10 px-3 rounded-lg border border-ink-200 text-[13px]" value="75,000"/></div>
+        <div><label class="text-[12px] font-semibold text-ink-500">Gateway</label><select class="mt-1 w-full h-10 px-3 rounded-lg border border-ink-200 text-[13px] bg-white"><option>Razorpay</option><option>Cashfree</option><option>Stripe</option></select></div>
+      </div>
+      <div class="flex items-center gap-2 text-[12px] text-ink-500 bg-grow-500/5 rounded-lg p-3"><i data-lucide="route" class="w-4 h-4 text-grow-600"></i>On payment, deal moves to <b>Won</b> & attribution updates automatically.</div>
+    </div>
+    <div class="px-5 py-4 border-t border-ink-100 flex justify-end gap-2"><button onclick="closeModal('payModal')" class="h-9 px-4 rounded-lg border border-ink-200 text-[13px] font-semibold text-ink-600">Cancel</button><button onclick="closeModal('payModal');toast('Payment link generated & sent on WhatsApp','success')" class="h-9 px-4 rounded-lg bg-grow-600 text-white text-[13px] font-semibold">Generate & Send</button></div>
+  </div>
+</div>
+
+<!-- invite -->
+<div id="inviteModal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div onclick="closeModal('inviteModal')" class="absolute inset-0 bg-black/40"></div>
+  <div class="relative bg-white rounded-2xl w-full max-w-md shadow-2xl">
+    <div class="px-5 py-4 border-b border-ink-100 flex items-center justify-between"><h3 class="font-bold text-ink-900">Invite Member</h3><button onclick="closeModal('inviteModal')"><i data-lucide="x" class="w-5 h-5 text-ink-400"></i></button></div>
+    <div class="p-5 space-y-3">
+      <div><label class="text-[12px] font-semibold text-ink-500">Email</label><input class="mt-1 w-full h-10 px-3 rounded-lg border border-ink-200 text-[13px]" placeholder="name@company.com"/></div>
+      <div><label class="text-[12px] font-semibold text-ink-500">Role</label><select class="mt-1 w-full h-10 px-3 rounded-lg border border-ink-200 text-[13px] bg-white"><option>Tenant Admin</option><option>Sales User</option><option>Read-Only / VA</option></select></div>
+    </div>
+    <div class="px-5 py-4 border-t border-ink-100 flex justify-end gap-2"><button onclick="closeModal('inviteModal')" class="h-9 px-4 rounded-lg border border-ink-200 text-[13px] font-semibold text-ink-600">Cancel</button><button onclick="closeModal('inviteModal');toast('Invitation sent','success')" class="h-9 px-4 rounded-lg bg-ink-900 text-white text-[13px] font-semibold">Send Invite</button></div>
+  </div>
+</div>
+
+<!-- toast container -->
+<div id="toastWrap" class="fixed bottom-5 right-5 z-[60] space-y-2"></div>
+
+<script>
+/* =========================================================
+   MOCK DATA  (derived strictly from PRD: coaches/EdTech tenant)
+========================================================= */
+const SOURCES = ['Meta Ads','WhatsApp','Instagram','Web Form','Referral'];
+const sourceColor = { 'Meta Ads':'#0EA5E9','WhatsApp':'#10B981','Instagram':'#8B5CF6','Web Form':'#06B6D4','Referral':'#F59E0B' };
+
+const leads = [
+  {id:'L-1042',name:'Ananya Sharma',email:'ananya@gmail.com',phone:'+91 98xxxx21',source:'Meta Ads',campaign:'Coaching Launch — Lookalike',score:92,status:'Hot',owner:'Himanshu K.',created:'2h ago',consent:true,utm:'utm_source=meta&utm_campaign=launch_lal',
+    ai:'High intent. ₹3L/mo revenue, ready to start within 2 weeks, budget ₹75k+. Recommend: send booking link now.',
+    timeline:[['Lead created','Meta Lead Ad submitted','2h ago'],['AI qualification','5/5 answered · score 92','2h ago'],['Routed','Marked Hot → assigned to Himanshu','2h ago'],['Booking link sent','WhatsApp','1h ago']]},
+  {id:'L-1041',name:'Rohit Verma',email:'rohit.v@outlook.com',phone:'+91 90xxxx88',source:'WhatsApp',campaign:'Click-to-WA bio link',score:74,status:'Warm',owner:'Neha S.',created:'4h ago',consent:true,utm:'wa_source=bio',
+    ai:'Mid intent. Exploring options, budget unclear. Recommend: 3-step nurture sequence.',
+    timeline:[['Lead created','WhatsApp click-to-chat','4h ago'],['AI qualification','4/5 answered · score 74','4h ago'],['Nurture started','Warm Lead Sequence','3h ago']]},
+  {id:'L-1040',name:'Priya Nair',email:'priya.nair@gmail.com',phone:'+91 99xxxx10',source:'Instagram',campaign:'IG Story — Webinar',score:88,status:'Hot',owner:'Himanshu K.',created:'5h ago',consent:true,utm:'utm_source=ig&utm_medium=story',
+    ai:'Strong fit. Attended webinar, ₹5L/mo, decision-maker. Recommend: book strategy call.',
+    timeline:[['Lead created','Instagram story link','5h ago'],['AI qualification','5/5 · score 88','5h ago'],['Booking created','Tomorrow 4:00 PM','4h ago']]},
+  {id:'L-1039',name:'Karan Mehta',email:'karan@startup.io',phone:'+91 87xxxx45',source:'Web Form',campaign:'Landing page — SEO',score:61,status:'Warm',owner:'Neha S.',created:'8h ago',consent:true,utm:'utm_source=google&utm_medium=organic',
+    ai:'Moderate fit. Early stage, low budget signal. Recommend: nurture + re-qualify in 2 weeks.',
+    timeline:[['Lead created','Web form submission','8h ago'],['AI qualification','5/5 · score 61','8h ago'],['Nurture started','Education sequence','7h ago']]},
+  {id:'L-1038',name:'Sneha Iyer',email:'sneha.iyer@gmail.com',phone:'+91 76xxxx33',source:'Referral',campaign:'Client referral',score:95,status:'Hot',owner:'Himanshu K.',created:'1d ago',consent:true,utm:'ref=client_priya',
+    ai:'Excellent fit. Warm referral, high budget, urgent timeline. Recommend: priority booking.',
+    timeline:[['Lead created','Referral from existing client','1d ago'],['AI qualification','5/5 · score 95','1d ago'],['Booking created','Today 6:00 PM','1d ago'],['Proposal sent','₹1,20,000 package','3h ago']]},
+  {id:'L-1037',name:'Aditya Rao',email:'aditya@gmail.com',phone:'+91 80xxxx77',source:'Meta Ads',campaign:'Retargeting — Warm',score:48,status:'Cold',owner:'—',created:'1d ago',consent:false,utm:'utm_source=meta&utm_campaign=retarget',
+    ai:'Low intent. Tire-kicker signals, no budget. Recommend: long-term nurture only.',
+    timeline:[['Lead created','Meta retargeting ad','1d ago'],['AI qualification','3/5 · score 48','1d ago'],['Consent','Opted out of WhatsApp','1d ago']]},
+  {id:'L-1036',name:'Meera Joshi',email:'meera.j@gmail.com',phone:'+91 70xxxx12',source:'WhatsApp',campaign:'Click-to-WA ad',score:79,status:'Qualifying',owner:'Neha S.',created:'1d ago',consent:true,utm:'utm_source=meta&wa=ctwa',
+    ai:'Qualification in progress — 3 of 5 questions answered.',
+    timeline:[['Lead created','Click-to-WhatsApp ad','1d ago'],['AI qualification','In progress 3/5','22h ago']]},
+  {id:'L-1035',name:'Vikram Singh',email:'vikram@gmail.com',phone:'+91 91xxxx64',source:'Instagram',campaign:'IG Reels — Organic',score:55,status:'Warm',owner:'—',created:'2d ago',consent:true,utm:'utm_source=ig&utm_medium=reels',
+    ai:'Moderate. Interested but budget below threshold. Recommend: downsell + nurture.',
+    timeline:[['Lead created','Instagram reels link','2d ago'],['AI qualification','5/5 · score 55','2d ago']]},
+];
+
+const stages = [
+  {key:'new',name:'New',color:'#64748B'},
+  {key:'qualified',name:'Qualified',color:'#0EA5E9'},
+  {key:'booked',name:'Booked',color:'#06B6D4'},
+  {key:'proposal',name:'Proposal',color:'#F59E0B'},
+  {key:'won',name:'Won',color:'#10B981'},
+];
+let deals = [
+  {id:'D-501',name:'Sneha Iyer',value:'₹1.20L',source:'Referral',stage:'proposal',owner:'HK',score:95},
+  {id:'D-502',name:'Ananya Sharma',value:'₹75K',source:'Meta Ads',stage:'booked',owner:'HK',score:92},
+  {id:'D-503',name:'Priya Nair',value:'₹90K',source:'Instagram',stage:'booked',owner:'HK',score:88},
+  {id:'D-504',name:'Rohit Verma',value:'₹45K',source:'WhatsApp',stage:'qualified',owner:'NS',score:74},
+  {id:'D-505',name:'Meera Joshi',value:'₹60K',source:'WhatsApp',stage:'new',owner:'NS',score:79},
+  {id:'D-506',name:'Karan Mehta',value:'₹40K',source:'Web Form',stage:'qualified',owner:'NS',score:61},
+  {id:'D-507',name:'Deepak Roy — closed',value:'₹1.50L',source:'Referral',stage:'won',owner:'HK',score:97},
+  {id:'D-508',name:'Tanvi Shah — closed',value:'₹85K',source:'Meta Ads',stage:'won',owner:'HK',score:90},
+  {id:'D-509',name:'Arjun Pillai',value:'₹55K',source:'Meta Ads',stage:'new',owner:'NS',score:68},
+  {id:'D-510',name:'Ishita Bose',value:'₹70K',source:'Instagram',stage:'proposal',owner:'HK',score:84},
+];
+
+const attrData = [
+  {source:'Meta Ads',leads:284,qualified:198,booked:96,won:34,revenue:'₹6.8L',conv:'12.0%'},
+  {source:'WhatsApp',leads:176,qualified:131,booked:71,won:28,revenue:'₹4.2L',conv:'15.9%'},
+  {source:'Instagram',leads:142,qualified:88,booked:42,won:15,revenue:'₹2.1L',conv:'10.6%'},
+  {source:'Referral',leads:64,qualified:58,booked:39,won:21,revenue:'₹3.9L',conv:'32.8%'},
+  {source:'Web Form',leads:98,qualified:51,booked:18,won:6,revenue:'₹0.9L',conv:'6.1%'},
+];
+
+const campaigns = [
+  {name:'Coaching Launch — Lookalike',spend:'₹1.80L',leads:142,cpl:'₹1,268',qualified:101,won:18,revenue:'₹3.6L',roas:'2.0x',good:true},
+  {name:'Retargeting — Warm Audience',spend:'₹0.95L',leads:88,cpl:'₹1,079',qualified:54,won:11,revenue:'₹2.2L',roas:'2.3x',good:true},
+  {name:'Webinar Funnel — Interest',spend:'₹1.20L',leads:96,cpl:'₹1,250',qualified:43,won:5,revenue:'₹1.0L',roas:'0.8x',good:false},
+  {name:'Click-to-WhatsApp — Broad',spend:'₹0.70L',leads:64,cpl:'₹1,094',qualified:48,won:9,revenue:'₹1.8L',roas:'2.6x',good:true},
+  {name:'IG Story — Cold',spend:'₹0.55L',leads:38,cpl:'₹1,447',qualified:14,won:1,revenue:'₹0.2L',roas:'0.4x',good:false},
+];
+
+const bookings = [
+  {name:'Sneha Iyer',type:'Strategy Call',time:'Today · 6:00 PM',source:'Referral',status:'confirmed'},
+  {name:'Ananya Sharma',type:'Discovery Call',time:'Tomorrow · 4:00 PM',source:'Meta Ads',status:'confirmed'},
+  {name:'Priya Nair',type:'Strategy Call',time:'Tomorrow · 5:30 PM',source:'Instagram',status:'confirmed'},
+  {name:'Rahul Dey',type:'Discovery Call',time:'Wed · 11:00 AM',source:'WhatsApp',status:'reminder'},
+  {name:'Nisha Gupta',type:'Follow-up',time:'Wed · 2:00 PM',source:'Meta Ads',status:'reminder'},
+];
+
+const sequences = [
+  {name:'Hot Lead — Fast Track',channel:'WhatsApp + Email',active:142,steps:4,conv:'38%',status:'Active'},
+  {name:'Warm Lead Nurture',channel:'WhatsApp',active:96,steps:5,conv:'19%',status:'Active'},
+  {name:'Education Sequence',channel:'Email',active:64,steps:7,conv:'11%',status:'Active'},
+  {name:'No-Show Recovery',channel:'WhatsApp + SMS',active:18,steps:3,conv:'27%',status:'Active'},
+  {name:'Cart / Payment Reminder',channel:'WhatsApp',active:9,steps:3,conv:'44%',status:'Active'},
+  {name:'Reactivation — 30d cold',channel:'Email',active:0,steps:4,conv:'—',status:'Draft'},
+];
+
+const reports = [
+  {name:'Weekly Briefing',aud:'Owner',freq:'Weekly',ai:true,p:'P0'},
+  {name:'Pipeline Report',aud:'Owner, Admin, Sales',freq:'On-demand',ai:false,p:'P0'},
+  {name:'Attribution Report',aud:'Owner, Admin',freq:'On-demand',ai:true,p:'P0'},
+  {name:'Tracking Report',aud:'Admin',freq:'On-demand',ai:false,p:'P0'},
+  {name:'Campaign ROI Report',aud:'Owner, Marketing',freq:'On-demand',ai:true,p:'P1'},
+  {name:'Daily Snapshot',aud:'Owner',freq:'Daily',ai:true,p:'P1'},
+  {name:'Sales Performance',aud:'Owner, Admin',freq:'Weekly',ai:false,p:'P1'},
+  {name:'Activity Report',aud:'Admin',freq:'Weekly',ai:false,p:'P1'},
+  {name:'Integration Health',aud:'Admin',freq:'Weekly',ai:false,p:'P1'},
+];
+
+let payments = [
+  {name:'Deepak Roy',plan:'Elite 1:1 Coaching',amount:'₹1,50,000',source:'Referral',status:'Paid',date:'Today'},
+  {name:'Tanvi Shah',plan:'Group Program',amount:'₹85,000',source:'Meta Ads',status:'Paid',date:'Yesterday'},
+  {name:'Ananya Sharma',plan:'1:1 Coaching',amount:'₹75,000',source:'Meta Ads',status:'Pending',date:'Today'},
+  {name:'Ishita Bose',plan:'Group Program',amount:'₹70,000',source:'Instagram',status:'Pending',date:'Yesterday'},
+  {name:'Manish Kohli',plan:'1:1 Coaching',amount:'₹75,000',source:'WhatsApp',status:'Failed',date:'2d ago'},
+];
+
+const integrations = [
+  {name:'WhatsApp Business (WATI)',icon:'message-circle',cat:'Messaging',status:'warning',detail:'Token expires in 4 days',lag:'0.8s',err:'0.2%'},
+  {name:'Meta Lead Ads',icon:'facebook',cat:'Lead Capture',status:'ok',detail:'Syncing · 142 leads/30d',lag:'1.2s',err:'0.0%'},
+  {name:'Cal.com',icon:'calendar',cat:'Booking',status:'ok',detail:'Connected · 24 bookings',lag:'0.4s',err:'0.0%'},
+  {name:'Razorpay',icon:'credit-card',cat:'Payments',status:'off',detail:'Not connected',lag:'—',err:'—'},
+  {name:'Instagram',icon:'instagram',cat:'Lead Capture',status:'ok',detail:'Connected · DMs tracked',lag:'1.5s',err:'0.1%'},
+  {name:'Claude API',icon:'sparkles',cat:'AI',status:'ok',detail:'94% qualification confidence',lag:'1.1s',err:'0.0%'},
+];
+
+const users = [
+  {name:'Himanshu Kumar',email:'himanshu@elevate.co',role:'Tenant Owner',mfa:true,last:'Online now',init:'HK'},
+  {name:'Neha Sharma',email:'neha@elevate.co',role:'Sales User',mfa:true,last:'12m ago',init:'NS'},
+  {name:'Rohan Das',email:'rohan@elevate.co',role:'Tenant Admin',mfa:true,last:'1h ago',init:'RD'},
+  {name:'Kavya Menon',email:'kavya@elevate.co',role:'Read-Only / VA',mfa:false,last:'Yesterday',init:'KM'},
+  {name:'Arjun Iyer',email:'arjun@elevate.co',role:'Sales User',mfa:false,last:'3h ago',init:'AI'},
+];
+
+const rbac = [
+  ['View All Leads','✅','✅','🟡','👁️','❌'],
+  ['Edit Leads / Deals','✅','✅','✅','❌','❌'],
+  ['Configure Pipeline','✅','✅','❌','❌','❌'],
+  ['Manage Billing','✅','🟡','❌','❌','🟡'],
+  ['Invite / Manage Users','✅','✅','❌','❌','🟡'],
+  ['Send Messages','✅','✅','✅','❌','❌'],
+  ['Payment Links','✅','✅','✅','❌','❌'],
+  ['View Dashboards','✅','✅','🟡','👁️','✅'],
+  ['View Audit Logs','✅','🟡','❌','❌','✅'],
+  ['Impersonate Tenant','❌','❌','❌','❌','✅'],
+];
+
+const plans = [
+  {name:'Starter',price:'$39',sub:'Solo coach',feats:['Lead capture','AI qualification','CRM pipeline','Calendar booking','Basic nurture','Basic attribution'],users:'2 users',cur:false},
+  {name:'Growth',price:'$129',sub:'Teams 5–15',feats:['Everything in Starter','Advanced nurture (A/B)','Call intelligence','AI follow-up & proposal drafts','Campaign dashboard','Weekly briefing'],users:'10 users',cur:true},
+  {name:'Agency',price:'$349',sub:'Ecom agencies',feats:['Everything in Growth','Multi-client workspaces','Multi-touch attribution','QBR generator','Client health scoring','White-label (add-on)'],users:'25 users',cur:false},
+  {name:'Enterprise',price:'Custom',sub:'Large / multi-location',feats:['Everything in Agency','Custom integrations','SLAs & dedicated CS','Advanced security','Public API','Unlimited retention'],users:'Custom',cur:false},
+];
+
+const usage = [
+  {label:'Active leads / month',used:842,cap:2000},
+  {label:'WhatsApp messages',used:3120,cap:5000},
+  {label:'AI tokens',used:680000,cap:1000000},
+  {label:'Team seats',used:5,cap:10},
+];
+
+const toggles = [
+  ['Auto-trigger AI qualification on new lead',true],
+  ['Confidence-gated human review (handoff < 70%)',true],
+  ['Notify owner on every new hot lead',true],
+  ['Respect WhatsApp opt-out & consent',true],
+  ['Send weekly briefing to WhatsApp',true],
+  ['Allow Read-Only users to export',false],
+];
+
+/* =========================================================
+   NAV / ROUTER
+========================================================= */
+const titles = {
+  dashboard:['Owner Overview','Workspace · Dashboard'],
+  leads:['Leads','Workspace · Lead Capture'],
+  qualification:['AI Qualification','Workspace · Intelligence'],
+  pipeline:['Pipeline','Workspace · CRM'],
+  bookings:['Bookings','Workspace · Calendar'],
+  nurture:['Nurture','Workspace · Automation'],
+  attribution:['Attribution','Intelligence · Source-to-Revenue'],
+  campaigns:['Campaigns','Intelligence · Performance'],
+  tracking:['Tracking','Intelligence · Event Health'],
+  reports:['Reports','Intelligence · Analytics'],
+  payments:['Payments','Revenue · Payment Links'],
+  integrations:['Integrations','Revenue · Connections'],
+  settings:['Settings','Workspace · Admin'],
+};
+let chartsBuilt = {};
+function go(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.nav===page));
+  document.getElementById('pageTitle').textContent = titles[page][0];
+  document.getElementById('pageCrumb').textContent = titles[page][1];
+  document.querySelector('main').scrollTo(0,0);
+  closeSidebar();
+  if(page==='dashboard') buildDashboardCharts();
+  if(page==='attribution') buildAttrChart();
+  if(page==='campaigns') buildCampaignChart();
+  if(page==='tracking') buildEventChart();
+  lucide.createIcons();
+}
+document.querySelectorAll('.nav-item').forEach(n=>n.addEventListener('click',()=>go(n.dataset.nav)));
+
+/* sidebar mobile */
+function closeSidebar(){document.getElementById('sidebar').classList.add('-translate-x-full');document.getElementById('overlay').classList.add('hidden');}
+document.getElementById('menuBtn').onclick=()=>{document.getElementById('sidebar').classList.remove('-translate-x-full');document.getElementById('overlay').classList.remove('hidden');};
+document.getElementById('overlay').onclick=closeSidebar;
+
+/* role switch */
+function switchRole(r){ toast('Viewing as '+document.getElementById('roleSwitch').selectedOptions[0].text.replace(/^[^ ]+ /,''),'info'); }
+
+/* =========================================================
+   RENDER: DASHBOARD
+========================================================= */
+const kpis = [
+  {label:'Leads this week',value:'763',delta:'+18%',up:true,icon:'inbox',color:'brand'},
+  {label:'Qualified',value:'542',delta:'71% rate',up:true,icon:'sparkles',color:'brand'},
+  {label:'Bookings',value:'168',delta:'+24%',up:true,icon:'calendar-check',color:'grow'},
+  {label:'Revenue captured',value:'₹14.8L',delta:'+31%',up:true,icon:'wallet',color:'grow'},
+];
+function renderKpis(){
+  document.getElementById('kpiRow').innerHTML = kpis.map(k=>`
+    <div class="kpi card bg-white rounded-2xl border border-ink-200 p-4 transition">
+      <div class="flex items-start justify-between">
+        <div class="w-9 h-9 rounded-lg grid place-items-center ${k.color==='grow'?'bg-grow-500/10':'bg-brand-500/10'}">
+          <i data-lucide="${k.icon}" class="w-[18px] h-[18px] ${k.color==='grow'?'text-grow-600':'text-brand-600'}"></i>
+        </div>
+        <span class="text-[11px] font-semibold flex items-center gap-0.5 ${k.up?'text-grow-600':'text-red-500'}">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>${k.delta}
+        </span>
+      </div>
+      <div class="mt-3 text-2xl font-bold text-ink-900">${k.value}</div>
+      <div class="text-[12px] text-ink-400">${k.label}</div>
+    </div>`).join('');
+}
+function renderActivity(){
+  const items=[
+    ['user-plus','New lead <b>Ananya Sharma</b> from Meta Ads','2m','brand'],
+    ['sparkles','AI qualified <b>Priya Nair</b> · score 88','9m','brand'],
+    ['calendar-check','<b>Sneha Iyer</b> booked a Strategy Call','24m','grow'],
+    ['credit-card','Payment ₹1.5L captured · <b>Deepak Roy</b>','1h','grow'],
+    ['route','Deal moved to <b>Won</b> · attribution updated','1h','grow'],
+    ['alert-triangle','WhatsApp token expiring soon','3h','amber'],
+    ['git-branch','Warm nurture started for <b>Rohit Verma</b>','4h','brand'],
+  ];
+  document.getElementById('activityFeed').innerHTML = items.map(i=>`
+    <div class="flex gap-3">
+      <div class="w-7 h-7 shrink-0 rounded-full grid place-items-center ${i[3]==='grow'?'bg-grow-500/10':i[3]==='amber'?'bg-amber-100':'bg-brand-500/10'}">
+        <i data-lucide="${i[0]}" class="w-3.5 h-3.5 ${i[3]==='grow'?'text-grow-600':i[3]==='amber'?'text-amber-600':'text-brand-600'}"></i>
+      </div>
+      <div class="flex-1"><p class="text-[12.5px] text-ink-700 leading-snug">${i[1]}</p><span class="text-[11px] text-ink-400">${i[2]} ago</span></div>
+    </div>`).join('');
+}
+function buildDashboardCharts(){
+  if(chartsBuilt.dash) return; chartsBuilt.dash=true;
+  new Chart(document.getElementById('funnelChart'),{
+    type:'bar',
+    data:{labels:['Captured','Qualified','Booked','Proposal','Won'],
+      datasets:[{data:[763,542,168,96,69],backgroundColor:['#CBD5E1','#38BDF8','#06B6D4','#0891B2','#10B981'],borderRadius:8,barThickness:46}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#F1F5F9'},border:{display:false}},y:{grid:{display:false},border:{display:false},ticks:{font:{weight:'600'}}}}}
+  });
+  const sc=new Chart(document.getElementById('sourceChart'),{
+    type:'doughnut',
+    data:{labels:SOURCES,datasets:[{data:[284,176,142,98,64],backgroundColor:SOURCES.map(s=>sourceColor[s]),borderWidth:0,cutout:'68%'}]},
+    options:{plugins:{legend:{display:false}}}
+  });
+  document.getElementById('sourceLegend').innerHTML = SOURCES.map((s,i)=>{
+    const v=[284,176,142,98,64][i];
+    return `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background:${sourceColor[s]}"></span><span class="text-ink-600 flex-1">${s}</span><b class="text-ink-900">${v}</b></div>`;
+  }).join('');
+  new Chart(document.getElementById('pipelineBar'),{
+    type:'bar',
+    data:{labels:stages.map(s=>s.name),datasets:[
+      {label:'Deals',data:[2,2,2,2,2].map((_,i)=>deals.filter(d=>d.stage===stages[i].key).length),backgroundColor:stages.map(s=>s.color),borderRadius:8,barThickness:54}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{weight:'600'}}},y:{grid:{color:'#F1F5F9'},border:{display:false},ticks:{precision:0}}}}
+  });
+}
+
+/* =========================================================
+   RENDER: LEADS
+========================================================= */
+function scoreBadge(s){
+  const cls = s>=85?'bg-grow-500/10 text-grow-600':s>=65?'bg-amber-100 text-amber-700':'bg-ink-100 text-ink-500';
+  return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${cls}"><i data-lucide="zap" class="w-3 h-3"></i>${s}</span>`;
+}
+function statusBadge(s){
+  const m={Hot:'bg-red-50 text-red-600',Warm:'bg-amber-50 text-amber-700',Cold:'bg-ink-100 text-ink-500',Qualifying:'bg-brand-500/10 text-brand-600',New:'bg-blue-50 text-blue-600'};
+  return `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${m[s]||'bg-ink-100'}">${s}</span>`;
+}
+function renderLeads(){
+  const q=(document.getElementById('leadSearch')?.value||'').toLowerCase();
+  const src=document.getElementById('leadSource')?.value||'';
+  const st=document.getElementById('leadStatus')?.value||'';
+  const rows=leads.filter(l=>(!q||l.name.toLowerCase().includes(q)||l.id.toLowerCase().includes(q))&&(!src||l.source===src)&&(!st||l.status===st));
+  document.getElementById('leadsTable').innerHTML = rows.length?rows.map(l=>`
+    <tr class="row-click" onclick="openLead('${l.id}')">
+      <td class="px-4 py-3">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full text-white grid place-items-center text-[11px] font-bold" style="background:${sourceColor[l.source]}">${l.name.split(' ').map(x=>x[0]).join('')}</div>
+          <div><div class="font-semibold text-ink-900">${l.name}</div><div class="text-[11px] text-ink-400">${l.id} · ${l.email}</div></div>
+        </div>
+      </td>
+      <td class="px-4 py-3"><span class="inline-flex items-center gap-1.5 text-[12px]"><span class="w-2 h-2 rounded-full" style="background:${sourceColor[l.source]}"></span>${l.source}</span></td>
+      <td class="px-4 py-3">${scoreBadge(l.score)}</td>
+      <td class="px-4 py-3">${statusBadge(l.status)}</td>
+      <td class="px-4 py-3 text-ink-600">${l.owner}</td>
+      <td class="px-4 py-3 text-ink-400 text-[12px]">${l.created}</td>
+      <td class="px-4 py-3 text-right"><i data-lucide="chevron-right" class="w-4 h-4 text-ink-300 inline"></i></td>
+    </tr>`).join(''):`<tr><td colspan="7" class="text-center py-12 text-ink-400"><i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2"></i><div class="text-[13px]">No leads match your filters</div></td></tr>`;
+  lucide.createIcons();
+}
+
+/* lead drawer */
+function openLead(id){
+  const l=leads.find(x=>x.id===id); if(!l)return;
+  document.getElementById('drawerBody').innerHTML=`
+    <div class="p-5 border-b border-ink-100 bg-gradient-to-br from-ink-900 to-ink-800 text-white">
+      <div class="flex items-start justify-between">
+        <button onclick="closeDrawer()" class="text-ink-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <div class="flex gap-2">${statusBadge(l.status)}${scoreBadge(l.score)}</div>
+      </div>
+      <div class="flex items-center gap-3 mt-3">
+        <div class="w-12 h-12 rounded-full grid place-items-center text-white text-base font-bold" style="background:${sourceColor[l.source]}">${l.name.split(' ').map(x=>x[0]).join('')}</div>
+        <div><div class="text-lg font-bold">${l.name}</div><div class="text-[12px] text-ink-300">${l.id} · ${l.owner!=='—'?'Owned by '+l.owner:'Unassigned'}</div></div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mt-4">
+        <button onclick="toast('Opening WhatsApp chat…','info')" class="flex flex-col items-center gap-1 bg-white/5 hover:bg-white/10 rounded-lg py-2 text-[11px]"><i data-lucide="message-circle" class="w-4 h-4 text-grow-400"></i>WhatsApp</button>
+        <button onclick="go('bookings');closeDrawer()" class="flex flex-col items-center gap-1 bg-white/5 hover:bg-white/10 rounded-lg py-2 text-[11px]"><i data-lucide="calendar" class="w-4 h-4 text-brand-300"></i>Book</button>
+        <button onclick="openModal('payModal');closeDrawer()" class="flex flex-col items-center gap-1 bg-white/5 hover:bg-white/10 rounded-lg py-2 text-[11px]"><i data-lucide="credit-card" class="w-4 h-4 text-grow-400"></i>Pay link</button>
+      </div>
+    </div>
+    <div class="p-5 space-y-5">
+      <div class="rounded-xl border border-brand-500/20 bg-brand-500/5 p-4">
+        <div class="flex items-center gap-2 mb-1.5"><i data-lucide="sparkles" class="w-4 h-4 text-brand-600"></i><span class="text-[12px] font-bold text-brand-700">AI Recommendation</span><span class="ml-auto text-[10px] text-ink-400">conf. 94%</span></div>
+        <p class="text-[13px] text-ink-700 leading-relaxed">${l.ai}</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 text-[13px]">
+        <div><div class="text-[11px] text-ink-400 mb-0.5">Source</div><div class="font-semibold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:${sourceColor[l.source]}"></span>${l.source}</div></div>
+        <div><div class="text-[11px] text-ink-400 mb-0.5">Campaign</div><div class="font-semibold">${l.campaign}</div></div>
+        <div><div class="text-[11px] text-ink-400 mb-0.5">Phone</div><div class="font-semibold">${l.phone}</div></div>
+        <div><div class="text-[11px] text-ink-400 mb-0.5">Consent</div><div class="font-semibold ${l.consent?'text-grow-600':'text-red-500'}">${l.consent?'Opted in':'Opted out'}</div></div>
+        <div class="col-span-2"><div class="text-[11px] text-ink-400 mb-0.5">UTM / Attribution tag</div><code class="text-[11px] bg-ink-100 rounded px-2 py-1 block truncate">${l.utm}</code></div>
+      </div>
+      <div>
+        <div class="text-[12px] font-bold text-ink-900 mb-3">Activity Timeline</div>
+        <div class="relative pl-5 space-y-4 before:absolute before:left-[6px] before:top-1 before:bottom-1 before:w-px before:bg-ink-200">
+          ${l.timeline.map(t=>`<div class="relative"><span class="absolute -left-[14px] top-1 w-2.5 h-2.5 rounded-full bg-brand-500 ring-4 ring-brand-500/10"></span><div class="text-[13px] font-semibold text-ink-900">${t[0]}</div><div class="text-[12px] text-ink-500">${t[1]}</div><div class="text-[11px] text-ink-400">${t[2]}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('drawerWrap').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('drawer').classList.remove('translate-x-full'),10);
+  lucide.createIcons();
+}
+function closeDrawer(){document.getElementById('drawer').classList.add('translate-x-full');setTimeout(()=>document.getElementById('drawerWrap').classList.add('hidden'),300);}
+
+function addLead(){
+  const name=document.getElementById('nl_name').value||'New Lead';
+  const src=document.getElementById('nl_source').value;
+  const id='L-'+(1043+leads.length);
+  leads.unshift({id,name,email:name.toLowerCase().replace(/ /g,'.')+'@gmail.com',phone:'+91 9xxxxxx',source:src,campaign:'Manual entry',score:Math.floor(60+Math.random()*35),status:'Qualifying',owner:'—',created:'just now',consent:true,utm:'manual=true',ai:'Qualification triggered — awaiting AI response.',timeline:[['Lead created','Manual entry','just now'],['AI qualification','Triggered automatically','just now']]});
+  closeModal('addLeadModal');renderLeads();toast('Lead created · AI qualification triggered','success');
+}
+
+/* =========================================================
+   RENDER: AI REVIEW QUEUE
+========================================================= */
+function renderReviewQueue(){
+  const q=leads.filter(l=>l.status==='Qualifying'||l.score<70).slice(0,5);
+  const data=[
+    {name:'Meera Joshi',reason:'Confidence 64% — ambiguous budget answer',draft:'Hi Meera! Thanks for your interest. To recommend the right program, could you share your monthly revenue range?'},
+    {name:'Aditya Rao',reason:'Low score 48 — possible mismatch',draft:'Hi Aditya, based on your goals our free masterclass may be a better starting point. Want the link?'},
+    {name:'Vikram Singh',reason:'Budget below threshold — downsell?',draft:'Hi Vikram! We have a group program that fits a leaner budget — shall I share details?'},
+    {name:'Karan Mehta',reason:'Early stage — re-qualify later',draft:'Hey Karan, sounds like you\'re early. I\'ll check back in 2 weeks with resources tailored to your stage.'},
+    {name:'Sahil Kapoor',reason:'Conflicting answers detected',draft:'Hi Sahil, quick clarification — are you looking to start this month or exploring for later?'},
+  ];
+  document.getElementById('reviewQueue').innerHTML=data.map((d,i)=>`
+    <div class="border border-ink-200 rounded-xl p-4">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-full bg-ink-800 text-white grid place-items-center text-[11px] font-bold">${d.name.split(' ').map(x=>x[0]).join('')}</div><div><div class="font-semibold text-[13.5px] text-ink-900">${d.name}</div><div class="text-[11px] text-amber-600 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i>${d.reason}</div></div></div>
+      </div>
+      <div class="bg-ink-50 rounded-lg p-3 text-[12.5px] text-ink-600 italic">"${d.draft}"</div>
+      <div class="flex gap-2 mt-3">
+        <button onclick="this.closest('div.border').remove();toast('Draft approved & sent','success')" class="flex-1 h-8 rounded-lg bg-grow-600 text-white text-[12px] font-semibold flex items-center justify-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5"></i>Approve & Send</button>
+        <button onclick="toast('Opened for editing','info')" class="h-8 px-3 rounded-lg border border-ink-200 text-[12px] font-semibold text-ink-600">Edit</button>
+        <button onclick="this.closest('div.border').remove();toast('Lead dismissed','info')" class="h-8 px-3 rounded-lg border border-ink-200 text-[12px] font-semibold text-ink-500">Skip</button>
+      </div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+/* =========================================================
+   RENDER: PIPELINE KANBAN (drag-drop)
+========================================================= */
+function renderKanban(){
+  const k=document.getElementById('kanban');
+  k.innerHTML=stages.map(s=>{
+    const sd=deals.filter(d=>d.stage===s.key);
+    return `<div class="kanban-col bg-ink-100/60 rounded-2xl p-2.5 min-h-[200px]" data-stage="${s.key}"
+        ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="dropDeal(event,'${s.key}')">
+      <div class="flex items-center justify-between px-2 py-1.5 mb-1">
+        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background:${s.color}"></span><span class="font-bold text-[13px] text-ink-800">${s.name}</span></div>
+        <span class="text-[11px] font-semibold text-ink-400 bg-white px-1.5 py-0.5 rounded-full">${sd.length}</span>
+      </div>
+      <div class="space-y-2">${sd.map(d=>cardHTML(d)).join('')}</div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+function cardHTML(d){
+  return `<div class="kanban-card bg-white rounded-xl border border-ink-200 p-3 shadow-sm" draggable="true" data-id="${d.id}"
+      ondragstart="dragStart(event,'${d.id}')" ondragend="this.classList.remove('dragging')" onclick="toast('${d.name} · ${d.value}','info')">
+    <div class="flex items-center justify-between mb-1.5">
+      <span class="text-[11px] text-ink-400 font-medium">${d.id}</span>${scoreBadge(d.score)}
+    </div>
+    <div class="font-semibold text-[13px] text-ink-900 mb-1">${d.name}</div>
+    <div class="flex items-center justify-between">
+      <span class="inline-flex items-center gap-1 text-[11px] text-ink-500"><span class="w-1.5 h-1.5 rounded-full" style="background:${sourceColor[d.source]}"></span>${d.source}</span>
+      <span class="font-bold text-[13px] text-grow-600">${d.value}</span>
+    </div>
+    <div class="mt-2 pt-2 border-t border-ink-100 flex items-center justify-between">
+      <span class="text-[10px] text-ink-400">Owner ${d.owner}</span>
+      <span class="w-5 h-5 rounded-full bg-ink-800 text-white grid place-items-center text-[9px] font-bold">${d.owner}</span>
+    </div>
+  </div>`;
+}
+let dragId=null;
+function dragStart(e,id){dragId=id;e.currentTarget.classList.add('dragging');}
+function dropDeal(e,stage){
+  e.preventDefault();
+  document.querySelectorAll('.kanban-col').forEach(c=>c.classList.remove('dragover'));
+  const d=deals.find(x=>x.id===dragId); if(!d)return;
+  const prev=d.stage; d.stage=stage; renderKanban();
+  const sname=stages.find(s=>s.key===stage).name;
+  if(stage==='won'){toast(`🎉 ${d.name} moved to Won · attribution updated`,'success');}
+  else toast(`${d.name} → ${sname}`,'info');
+}
+
+/* =========================================================
+   RENDER: BOOKINGS / NURTURE / REPORTS / PAYMENTS
+========================================================= */
+function renderBookings(){
+  document.getElementById('bookingsList').innerHTML=bookings.map(b=>`
+    <div class="flex items-center gap-4 p-3 rounded-xl border border-ink-100 hover:border-ink-200 hover:bg-ink-50 transition">
+      <div class="w-11 h-11 rounded-xl grid place-items-center text-white" style="background:${sourceColor[b.source]}"><i data-lucide="video" class="w-5 h-5"></i></div>
+      <div class="flex-1"><div class="font-semibold text-ink-900 text-[14px]">${b.name}</div><div class="text-[12px] text-ink-500">${b.type} · via ${b.source}</div></div>
+      <div class="text-right"><div class="text-[13px] font-semibold text-ink-900">${b.time}</div>
+        <span class="text-[11px] font-semibold ${b.status==='confirmed'?'text-grow-600':'text-amber-600'}">${b.status==='confirmed'?'✓ Confirmed':'⏰ Reminder set'}</span></div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+function renderSequences(){
+  document.getElementById('sequences').innerHTML=sequences.map(s=>`
+    <div class="card bg-white border border-ink-200 rounded-2xl p-4">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-9 h-9 rounded-lg bg-brand-500/10 grid place-items-center"><i data-lucide="git-branch" class="w-[18px] h-[18px] text-brand-600"></i></div>
+        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${s.status==='Active'?'bg-grow-500/10 text-grow-600':'bg-ink-100 text-ink-500'}">${s.status}</span>
+      </div>
+      <h4 class="font-bold text-ink-900 text-[14px]">${s.name}</h4>
+      <p class="text-[12px] text-ink-400 mb-3 flex items-center gap-1"><i data-lucide="send" class="w-3.5 h-3.5"></i>${s.channel}</p>
+      <div class="grid grid-cols-3 gap-2 text-center pt-3 border-t border-ink-100">
+        <div><div class="font-bold text-ink-900">${s.active}</div><div class="text-[10px] text-ink-400">Active</div></div>
+        <div><div class="font-bold text-ink-900">${s.steps}</div><div class="text-[10px] text-ink-400">Steps</div></div>
+        <div><div class="font-bold text-grow-600">${s.conv}</div><div class="text-[10px] text-ink-400">Conv.</div></div>
+      </div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+function renderReports(){
+  document.getElementById('reportsGrid').innerHTML=reports.map(r=>`
+    <div class="card bg-white border border-ink-200 rounded-2xl p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div class="w-9 h-9 rounded-lg bg-ink-100 grid place-items-center"><i data-lucide="file-text" class="w-[18px] h-[18px] text-ink-600"></i></div>
+        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${r.p==='P0'?'bg-red-50 text-red-600':'bg-amber-50 text-amber-700'}">${r.p}</span>
+      </div>
+      <h4 class="font-bold text-ink-900 text-[14px] flex items-center gap-1.5">${r.name}${r.ai?'<i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-500"></i>':''}</h4>
+      <p class="text-[12px] text-ink-400">${r.aud}</p>
+      <div class="flex items-center justify-between mt-3 pt-3 border-t border-ink-100">
+        <span class="text-[11px] text-ink-500 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i>${r.freq}</span>
+        <button onclick="toast('${r.name} generated','success')" class="text-[12px] font-semibold text-brand-600 hover:underline">Generate</button>
+      </div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+function renderPayments(){
+  const sb={Paid:'bg-grow-500/10 text-grow-600',Pending:'bg-amber-50 text-amber-700',Failed:'bg-red-50 text-red-600'};
+  document.getElementById('payTable').innerHTML=payments.map(p=>`
+    <tr class="row-click">
+      <td class="px-5 py-3 font-semibold text-ink-900">${p.name}</td>
+      <td class="px-4 py-3 text-ink-600">${p.plan}</td>
+      <td class="px-4 py-3 text-right font-bold text-ink-900">${p.amount}</td>
+      <td class="px-4 py-3"><span class="inline-flex items-center gap-1.5 text-[12px]"><span class="w-2 h-2 rounded-full" style="background:${sourceColor[p.source]}"></span>${p.source}</span></td>
+      <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${sb[p.status]}">${p.status}</span></td>
+      <td class="px-5 py-3 text-ink-400 text-[12px]">${p.date}</td>
+    </tr>`).join('');
+}
+
+/* =========================================================
+   RENDER: ATTRIBUTION
+========================================================= */
+function renderAttr(){
+  const max=Math.max(...attrData.map(a=>a.leads));
+  document.getElementById('sankey').innerHTML=attrData.map(a=>{
+    const w=s=>Math.round(s/max*100);
+    return `<div>
+      <div class="flex items-center justify-between text-[12.5px] mb-1">
+        <span class="font-semibold flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:${sourceColor[a.source]}"></span>${a.source}</span>
+        <span class="text-ink-400">${a.leads} leads → <b class="text-grow-600">${a.won} won</b></span>
+      </div>
+      <div class="flex gap-1 h-6 rounded-lg overflow-hidden">
+        <div class="flex items-center justify-end pr-2 text-[10px] text-white font-semibold" style="width:${w(a.leads)}%;background:${sourceColor[a.source]}">${a.leads}</div>
+        <div class="flex items-center justify-end pr-2 text-[10px] text-white font-semibold" style="width:${w(a.qualified)}%;background:${sourceColor[a.source]}aa">${a.qualified}</div>
+        <div class="flex items-center justify-end pr-2 text-[10px] text-white font-semibold" style="width:${w(a.booked)}%;background:${sourceColor[a.source]}77">${a.booked}</div>
+        <div class="flex items-center justify-center text-[10px] text-white font-semibold" style="width:${Math.max(w(a.won),8)}%;background:#10B981">${a.won}</div>
+      </div>
+    </div>`;
+  }).join('') + `<div class="flex gap-3 text-[10.5px] text-ink-400 pt-2"><span>■ Leads</span><span>■ Qualified</span><span>■ Booked</span><span class="text-grow-600">■ Won</span></div>`;
+  document.getElementById('attrTable').innerHTML=attrData.map(a=>`
+    <tr class="row-click" onclick="toast('Drill into ${a.source} leads…','info')">
+      <td class="px-5 py-3"><span class="inline-flex items-center gap-1.5 font-semibold"><span class="w-2.5 h-2.5 rounded-full" style="background:${sourceColor[a.source]}"></span>${a.source}</span></td>
+      <td class="px-4 py-3 text-right">${a.leads}</td><td class="px-4 py-3 text-right">${a.qualified}</td>
+      <td class="px-4 py-3 text-right">${a.booked}</td><td class="px-4 py-3 text-right font-semibold">${a.won}</td>
+      <td class="px-4 py-3 text-right font-bold text-grow-600">${a.revenue}</td>
+      <td class="px-5 py-3 text-right"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-ink-100">${a.conv}</span></td>
+    </tr>`).join('');
+}
+function buildAttrChart(){
+  if(chartsBuilt.attr)return;chartsBuilt.attr=true;
+  new Chart(document.getElementById('attrRevenue'),{
+    type:'bar',
+    data:{labels:attrData.map(a=>a.source),datasets:[{data:attrData.map(a=>parseFloat(a.revenue.replace(/[₹L]/g,''))),backgroundColor:attrData.map(a=>sourceColor[a.source]),borderRadius:6,barThickness:24}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+c.raw+'L'}}},scales:{x:{grid:{color:'#F1F5F9'},border:{display:false},ticks:{callback:v=>'₹'+v+'L'}},y:{grid:{display:false},border:{display:false}}}}
+  });
+}
+document.querySelectorAll('.attr-model').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.attr-model').forEach(x=>{x.classList.remove('bg-ink-900','text-white','font-semibold');x.classList.add('text-ink-500','font-medium');});
+  b.classList.add('bg-ink-900','text-white','font-semibold');b.classList.remove('text-ink-500');
+  if(b.dataset.model==='multi')toast('Multi-touch attribution unlocks on the Agency plan (V2)','info');
+}));
+
+/* =========================================================
+   RENDER: CAMPAIGNS
+========================================================= */
+function renderCampaigns(){
+  document.getElementById('campaignTable').innerHTML=campaigns.map(c=>`
+    <tr class="row-click" onclick="toast('${c.name}','info')">
+      <td class="px-5 py-3"><div class="font-semibold text-ink-900">${c.name}</div></td>
+      <td class="px-4 py-3 text-right text-ink-600">${c.spend}</td>
+      <td class="px-4 py-3 text-right">${c.leads}</td>
+      <td class="px-4 py-3 text-right text-ink-600">${c.cpl}</td>
+      <td class="px-4 py-3 text-right">${c.qualified}</td>
+      <td class="px-4 py-3 text-right font-semibold">${c.won}</td>
+      <td class="px-4 py-3 text-right font-semibold text-grow-600">${c.revenue}</td>
+      <td class="px-5 py-3 text-right"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${c.good?'bg-grow-500/10 text-grow-600':'bg-red-50 text-red-600'}">${c.roas}</span></td>
+    </tr>`).join('');
+  const sorted=[...campaigns].sort((a,b)=>parseFloat(b.roas)-parseFloat(a.roas));
+  document.getElementById('performers').innerHTML=
+    `<div class="text-[11px] font-bold text-grow-600 uppercase tracking-wide mb-1">Top</div>`+
+    sorted.slice(0,2).map(c=>perfRow(c)).join('')+
+    `<div class="text-[11px] font-bold text-red-500 uppercase tracking-wide mb-1 mt-3">Needs attention</div>`+
+    sorted.slice(-2).map(c=>perfRow(c)).join('');
+  lucide.createIcons();
+}
+function perfRow(c){
+  return `<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-ink-50">
+    <div class="w-8 h-8 rounded-lg grid place-items-center ${c.good?'bg-grow-500/10':'bg-red-50'}"><i data-lucide="${c.good?'trending-up':'trending-down'}" class="w-4 h-4 ${c.good?'text-grow-600':'text-red-500'}"></i></div>
+    <div class="flex-1 min-w-0"><div class="text-[12.5px] font-semibold text-ink-900 truncate">${c.name}</div><div class="text-[11px] text-ink-400">${c.leads} leads · ${c.revenue}</div></div>
+    <span class="font-bold text-[13px] ${c.good?'text-grow-600':'text-red-500'}">${c.roas}</span>
+  </div>`;
+}
+function buildCampaignChart(){
+  if(chartsBuilt.camp)return;chartsBuilt.camp=true;
+  const days=Array.from({length:14},(_,i)=>`${i+1} May`);
+  new Chart(document.getElementById('campaignTrend'),{
+    type:'line',
+    data:{labels:days,datasets:[
+      {label:'Captured',data:[38,42,51,47,55,62,58,49,67,71,63,58,72,79],borderColor:'#0EA5E9',backgroundColor:'rgba(14,165,233,.08)',fill:true,tension:.4,pointRadius:0,borderWidth:2.5},
+      {label:'Qualified',data:[24,28,33,30,38,44,40,32,46,49,44,40,51,56],borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.06)',fill:true,tension:.4,pointRadius:0,borderWidth:2.5}]},
+    options:{plugins:{legend:{position:'top',align:'end',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,font:{size:11}}}},scales:{x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:7,font:{size:10}}},y:{grid:{color:'#F1F5F9'},border:{display:false}}}}
+  });
+}
+
+/* =========================================================
+   RENDER: TRACKING
+========================================================= */
+function renderTracking(){
+  const tiles=[['UTM coverage','95%','grow','tag'],['Event volume (7d)','12.4K','brand','activity'],['WA click→lead','88%','brand','message-circle'],['Unknown source','5%','amber','help-circle']];
+  document.getElementById('trackTiles').innerHTML=tiles.map(t=>`
+    <div class="card bg-white border border-ink-200 rounded-2xl p-4">
+      <div class="w-9 h-9 rounded-lg grid place-items-center mb-3 ${t[2]==='grow'?'bg-grow-500/10':t[2]==='amber'?'bg-amber-100':'bg-brand-500/10'}"><i data-lucide="${t[3]}" class="w-[18px] h-[18px] ${t[2]==='grow'?'text-grow-600':t[2]==='amber'?'text-amber-600':'text-brand-600'}"></i></div>
+      <div class="text-2xl font-bold text-ink-900">${t[1]}</div><div class="text-[12px] text-ink-400">${t[0]}</div>
+    </div>`).join('');
+  const health=[['UTM parameters captured',95,'grow'],['WhatsApp click match rate',88,'brand'],['Meta Lead Ads field mapping',100,'grow'],['Form submissions attributed',92,'brand'],['Source reconciliation accuracy',82,'amber']];
+  document.getElementById('trackHealth').innerHTML=health.map(h=>`
+    <div><div class="flex justify-between text-[12.5px] mb-1"><span class="text-ink-600">${h[0]}</span><b class="text-ink-900">${h[1]}%</b></div>
+    <div class="h-2 rounded-full bg-ink-100 overflow-hidden"><div class="h-full rounded-full" style="width:${h[1]}%;background:${h[2]==='grow'?'#10B981':h[2]==='amber'?'#F59E0B':'#06B6D4'}"></div></div></div>`).join('');
+  const links=[['coach.io/?utm=meta_launch','Meta Ads',2840,284,'92%'],['wa.me/91xxx?src=bio','WhatsApp',1960,176,'88%'],['coach.io/ig-story','Instagram',1740,142,'81%'],['coach.io/webinar','Web Form',1120,98,'87%']];
+  document.getElementById('trackTable').innerHTML=links.map(l=>`
+    <tr class="row-click"><td class="px-5 py-3"><code class="text-[12px] text-ink-700">${l[0]}</code></td>
+    <td class="px-4 py-3"><span class="inline-flex items-center gap-1.5 text-[12px]"><span class="w-2 h-2 rounded-full" style="background:${sourceColor[l[1]]}"></span>${l[1]}</span></td>
+    <td class="px-4 py-3 text-right text-ink-600">${l[2].toLocaleString()}</td><td class="px-4 py-3 text-right font-semibold">${l[3]}</td>
+    <td class="px-5 py-3 text-right"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-grow-500/10 text-grow-600">${l[4]}</span></td></tr>`).join('');
+  lucide.createIcons();
+}
+function buildEventChart(){
+  if(chartsBuilt.event)return;chartsBuilt.event=true;
+  new Chart(document.getElementById('eventChart'),{
+    type:'bar',
+    data:{labels:['lead_created','ai_qualified','lead_scored','booking_created','call_completed','proposal_sent','payment_captured'],
+      datasets:[{data:[3120,2210,2210,980,640,420,290],backgroundColor:'#06B6D4',borderRadius:6,barThickness:30}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{size:9},maxRotation:40,minRotation:40}},y:{grid:{color:'#F1F5F9'},border:{display:false}}}}
+  });
+}
+
+/* =========================================================
+   RENDER: INTEGRATIONS
+========================================================= */
+function renderIntegrations(){
+  const map={ok:['bg-grow-500/10','text-grow-600','Connected','#10B981'],warning:['bg-amber-100','text-amber-700','Action needed','#F59E0B'],off:['bg-ink-100','text-ink-500','Not connected','#94A3B8']};
+  document.getElementById('integrationGrid').innerHTML=integrations.map(i=>{
+    const m=map[i.status];
+    return `<div class="card bg-white border border-ink-200 rounded-2xl p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-11 h-11 rounded-xl bg-ink-50 border border-ink-100 grid place-items-center"><i data-lucide="${i.icon}" class="w-5 h-5 text-ink-700"></i></div>
+        <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold ${m[0]} ${m[1]} px-2 py-1 rounded-full"><span class="w-1.5 h-1.5 rounded-full" style="background:${m[3]}"></span>${m[2]}</span>
+      </div>
+      <h4 class="font-bold text-ink-900 text-[14px]">${i.name}</h4>
+      <p class="text-[12px] text-ink-400 mb-3">${i.cat} · ${i.detail}</p>
+      <div class="flex items-center justify-between pt-3 border-t border-ink-100 text-[11px] text-ink-500">
+        <span>Lag <b class="text-ink-700">${i.lag}</b></span><span>Errors <b class="text-ink-700">${i.err}</b></span>
+        <button onclick="toast('${i.status==='off'?'Connecting '+i.name+'…':'Reconnecting '+i.name+'…'}','${i.status==='off'?'info':'success'}')" class="font-semibold ${i.status==='off'?'text-brand-600':'text-ink-600'} hover:underline">${i.status==='off'?'Connect':i.status==='warning'?'Reconnect':'Manage'}</button>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+/* =========================================================
+   RENDER: SETTINGS
+========================================================= */
+function renderUsers(){
+  document.getElementById('usersTable').innerHTML=users.map(u=>`
+    <tr class="row-click">
+      <td class="px-5 py-3"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-gradient-to-br from-ink-700 to-ink-900 text-white grid place-items-center text-[11px] font-bold">${u.init}</div><div><div class="font-semibold text-ink-900">${u.name}</div><div class="text-[11px] text-ink-400">${u.email}</div></div></div></td>
+      <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-brand-500/10 text-brand-600">${u.role}</span></td>
+      <td class="px-4 py-3">${u.mfa?'<span class="text-grow-600 text-[12px] font-semibold flex items-center gap-1"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>On</span>':'<span class="text-ink-400 text-[12px]">Off</span>'}</td>
+      <td class="px-5 py-3 text-[12px] ${u.last==='Online now'?'text-grow-600 font-semibold':'text-ink-400'}">${u.last}</td>
+    </tr>`).join('');
+  document.getElementById('rbacTable').innerHTML=rbac.map(r=>`
+    <tr><td class="px-5 py-2.5 font-medium text-ink-700">${r[0]}</td>${r.slice(1).map(c=>`<td class="px-3 py-2.5 text-center">${c}</td>`).join('')}</tr>`).join('');
+  lucide.createIcons();
+}
+function renderPlans(){
+  document.getElementById('plansGrid').innerHTML=plans.map(p=>`
+    <div class="rounded-2xl border ${p.cur?'border-brand-500 ring-2 ring-brand-500/20 bg-white':'border-ink-200 bg-white'} p-5 relative">
+      ${p.cur?'<span class="absolute -top-2.5 left-5 bg-brand-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">CURRENT PLAN</span>':''}
+      <h4 class="font-bold text-ink-900 text-[15px]">${p.name}</h4>
+      <p class="text-[11px] text-ink-400 mb-2">${p.sub}</p>
+      <div class="mb-1"><span class="text-2xl font-bold text-ink-900">${p.price}</span>${p.price!=='Custom'?'<span class="text-[12px] text-ink-400">/mo</span>':''}</div>
+      <div class="text-[11px] text-ink-400 mb-3">${p.users}</div>
+      <ul class="space-y-1.5 text-[12px] text-ink-600 mb-4">${p.feats.map(f=>`<li class="flex gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-grow-500 shrink-0 mt-0.5"></i>${f}</li>`).join('')}</ul>
+      <button onclick="toast('${p.cur?'You are on the '+p.name+' plan':'Upgrade to '+p.name+' requested'}','${p.cur?'info':'success'}')" class="w-full h-9 rounded-lg text-[13px] font-semibold ${p.cur?'bg-ink-100 text-ink-500':'bg-ink-900 text-white hover:bg-ink-800'}">${p.cur?'Current':p.name==='Enterprise'?'Contact sales':'Upgrade'}</button>
+    </div>`).join('');
+  document.getElementById('usageBars').innerHTML=usage.map(u=>{
+    const pct=Math.round(u.used/u.cap*100);
+    return `<div><div class="flex justify-between text-[12.5px] mb-1"><span class="text-ink-600">${u.label}</span><b class="text-ink-900">${u.used.toLocaleString()} / ${u.cap.toLocaleString()}</b></div>
+    <div class="h-2 rounded-full bg-ink-100 overflow-hidden"><div class="h-full rounded-full ${pct>85?'bg-amber-500':'bg-brand-500'}" style="width:${pct}%"></div></div></div>`;
+  }).join('');
+  lucide.createIcons();
+}
+function renderToggles(){
+  document.getElementById('toggleList').innerHTML=toggles.map((t,i)=>`
+    <div class="flex items-center justify-between py-3 border-b border-ink-100 last:border-0">
+      <span class="text-[13px] text-ink-700">${t[0]}</span>
+      <button onclick="this.querySelector('span').classList.toggle('translate-x-4');this.classList.toggle('bg-grow-500');this.classList.toggle('bg-ink-300')" class="toggle w-10 h-5.5 rounded-full ${t[1]?'bg-grow-500':'bg-ink-300'} relative p-0.5 flex">
+        <span class="toggle-dot w-4 h-4 rounded-full bg-white shadow ${t[1]?'translate-x-4':''}"></span>
+      </button>
+    </div>`).join('');
+}
+function settingsTab(name,el){
+  document.querySelectorAll('[data-tab-panel]').forEach(p=>p.classList.toggle('active',p.dataset.tabPanel===name));
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.classList.add('text-ink-500','font-medium');b.classList.remove('font-semibold');});
+  el.classList.add('active','font-semibold');el.classList.remove('font-medium');
+}
+
+/* =========================================================
+   MODALS / TOASTS / PANELS
+========================================================= */
+function openModal(id){const m=document.getElementById(id);m.classList.remove('hidden');m.classList.add('flex');lucide.createIcons();}
+function closeModal(id){const m=document.getElementById(id);m.classList.add('hidden');m.classList.remove('flex');}
+function openAIPanel(){renderNotif();document.getElementById('aiPanel').classList.remove('hidden');}
+function closeAIPanel(){document.getElementById('aiPanel').classList.add('hidden');}
+function renderNotif(){
+  const n=[['alert-triangle','WhatsApp token expires in 4 days','amber','3h'],['sparkles','5 leads awaiting AI review','brand','1h'],['trending-down','Webinar Funnel ROAS dropped to 0.8x','red','5h']];
+  document.getElementById('notifList').innerHTML=n.map(x=>`
+    <div class="flex gap-3 px-4 py-3 hover:bg-ink-50">
+      <i data-lucide="${x[0]}" class="w-4 h-4 mt-0.5 ${x[2]==='amber'?'text-amber-500':x[2]==='red'?'text-red-500':'text-brand-500'}"></i>
+      <div class="flex-1"><p class="text-[12.5px] text-ink-700">${x[1]}</p><span class="text-[11px] text-ink-400">${x[3]} ago</span></div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+function toast(msg,type='info'){
+  const colors={success:['#10B981','check-circle'],info:['#0EA5E9','info'],error:['#EF4444','alert-circle']};
+  const c=colors[type]||colors.info;
+  const el=document.createElement('div');
+  el.className='flex items-center gap-2.5 bg-white border border-ink-200 shadow-lg rounded-xl px-4 py-3 min-w-[260px] max-w-sm';
+  el.style.borderLeft='3px solid '+c[0];
+  el.innerHTML=`<i data-lucide="${c[1]}" class="w-[18px] h-[18px]" style="color:${c[0]}"></i><span class="text-[13px] text-ink-700 font-medium flex-1">${msg}</span>`;
+  el.style.opacity='0';el.style.transform='translateX(20px)';el.style.transition='all .25s ease';
+  document.getElementById('toastWrap').appendChild(el);
+  lucide.createIcons();
+  requestAnimationFrame(()=>{el.style.opacity='1';el.style.transform='none';});
+  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(20px)';setTimeout(()=>el.remove(),250);},3200);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();closeAIPanel();['addLeadModal','payModal','inviteModal'].forEach(closeModal);}});
+
+/* =========================================================
+   INIT
+========================================================= */
+renderKpis();renderActivity();buildDashboardCharts();
+renderLeads();renderReviewQueue();renderKanban();renderBookings();renderSequences();
+renderAttr();renderCampaigns();renderTracking();renderReports();renderPayments();
+renderIntegrations();renderUsers();renderPlans();renderToggles();
+lucide.createIcons();
+</script>
+</body>
+</html>
