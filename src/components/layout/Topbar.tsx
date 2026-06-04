@@ -33,7 +33,8 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   const user = useStore((s) => s.currentUser());
   const tenants = useStore((s) => s.db.tenants);
   const activeTenantId = useStore((s) => s.activeTenantId);
-  const notifications = useStore((s) => s.db.notifications.filter((n) => n.tenant_id === activeTenantId));
+  const notificationsAll = useStore((s) => s.db.notifications);
+  const notifications = notificationsAll.filter((n) => n.tenant_id === activeTenantId);
   const { logout, switchTenant, markNotificationRead, markAllNotificationsRead } = useStore();
 
   const [notifOpen, setNotifOpen] = useState(false);
